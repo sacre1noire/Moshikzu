@@ -5,17 +5,20 @@ import SchemaGraph from './pages/SchemaGraph'
 import Findings from './pages/Findings'
 import TableDetails from './pages/TableDetails'
 import QueryLog from './pages/QueryLog'
+import Layout from './components/Layout'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/connection" element={<ConnectionForm />} />
-        <Route path="/schema-graph" element={<SchemaGraph />} />
-        <Route path="/findings" element={<Findings />} />
-        <Route path="/table-details" element={<TableDetails />} />
-        <Route path="/query-log" element={<QueryLog />} />
+        <Route element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="connection" element={<ConnectionForm />} />
+          <Route path="schema-graph" element={<SchemaGraph />} />
+          <Route path="findings" element={<Findings />} />
+          <Route path="table-details" element={<TableDetails />} />
+          <Route path="query-log" element={<QueryLog />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )
