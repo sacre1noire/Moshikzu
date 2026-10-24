@@ -1,17 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
+from app.api.deps import get_connection_or_404
 from app.db.session import get_db
 from app.schemas.connection import ConnectionCreate, ConnectionRead, ConnectionUpdate
 from app.services import connections as service
 
 router = APIRouter(prefix="/connections", tags=["connections"])
-
-
-def get_connection_or_404(db, connection_id):
-    connection = service.get_connection(db, connection_id)
-    if connection is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
-    return connection
 
 
 @router.post("", response_model=ConnectionRead, status_code=status.HTTP_201_CREATED)
