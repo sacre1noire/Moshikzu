@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import func
+from sqlalchemy import DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -16,9 +16,7 @@ class Connection(Base):
     database: Mapped[str] = mapped_column()
     username: Mapped[str] = mapped_column()
     password: Mapped[str] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(
-        server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     runs: Mapped[list["AnalysisRun"]] = relationship(
         back_populates="connection", cascade="all, delete-orphan", passive_deletes=True

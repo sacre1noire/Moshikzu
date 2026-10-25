@@ -42,6 +42,7 @@ backend/
   app/
     main.py               создание приложения, подключение роутеров
     core/config.py        конфигурация (читает .env)
+    core/errors.py        ошибка нарушения бизнес-правила (→ 409)
     db/                   подключение к БД и сессии (session.py), базовый класс моделей (base.py)
     models/               модели SQLAlchemy (таблицы)
     schemas/              схемы Pydantic — валидация запросов и ответов
@@ -63,7 +64,7 @@ connections
 | Таблица | Назначение | Поля |
 |---|---|---|
 | `connections` | параметры подключения к анализируемой БД | `id` (PK), `name`, `host`, `port`, `database`, `username`, `password`, `created_at` |
-| `analysis_runs` | запуск анализа для подключения | `id` (PK), `connection_id` (FK → `connections.id`), `status` (`pending` / `running` / `done` / `failed`), `tables_count` (может быть пустым), `started_at` |
+| `analysis_runs` | запуск анализа для подключения | `id` (PK), `connection_id` (FK → `connections.id`), `status` (`pending` / `running` / `done` / `failed`), `tables_count` (может быть пустым), `started_at`, `finished_at` (может быть пустым) |
 | `findings` | проблема, найденная при анализе | `id` (PK), `run_id` (FK → `analysis_runs.id`), `table_name`, `severity` (`low` / `medium` / `high`), `title`, `description` |
 | `query_log_entries` | SQL-запрос из журнала подключения | `id` (PK), `connection_id` (FK → `connections.id`), `query`, `is_anomaly`, `executed_at` |
 
@@ -73,6 +74,18 @@ connections
 - все внешние ключи с `ON DELETE CASCADE`: при удалении подключения удаляются его запуски, их находки и журнал запросов; при удалении запуска — его находки.
 
 Пароль подключения хранится в БД, но не возвращается ни в одном ответе API.
+Все даты хранятся с часовым поясом и отдаются API в UTC.
+
+### Бизнес-правила запуска анализа
+Реализованы в `app/services/analysis_runs.py` и `app/services/findings.py`:
+- новый запуск всегда создаётся со статусом `pending`;
+- статус меняется только вперёд: `pending → running → done`, а также `pending → failed` и `running → failed`;
+- завершённый запуск (`done` / `failed`) изменить нельзя;
+- `finished_at` проставляется автоматически при переходе в `done` или `failed`;
+- `tables_count` указывается только при переходе в `done`;
+- находки можно добавлять только в запуск со статусом `running` или `done`.
+
+Нарушение правила → ответ `409 Conflict` с описанием причины.
 
 ## Запуск backend
 
@@ -137,7 +150,7 @@ sudo -u postgres psql -d template1 -c "REINDEX DATABASE template1;" -c "ALTER DA
 |---|---|---|
 | `POST` / `GET` | `/connections` | создать подключение / список |
 | `GET` / `PATCH` / `DELETE` | `/connections/{connection_id}` | получить / изменить / удалить |
-| `POST` / `GET` | `/connections/{connection_id}/runs` | создать запуск анализа / запуски подключения |
+| `POST` / `GET` | `/connections/{connection_id}/runs` | создать запуск анализа (без тела) / запуски подключения |
 | `GET` / `PATCH` / `DELETE` | `/runs/{run_id}` | получить / изменить / удалить |
 | `POST` / `GET` | `/runs/{run_id}/findings` | создать находку / находки запуска |
 | `GET` / `PATCH` / `DELETE` | `/findings/{finding_id}` | получить / изменить / удалить |
@@ -148,10 +161,11 @@ sudo -u postgres psql -d template1 -c "REINDEX DATABASE template1;" -c "ALTER DA
 Коды ответов:
 - `201` — запись создана, `204` — запись удалена;
 - `404` — запись (или родительская запись) не найдена;
+- `409` — действие нарушает бизнес-правило (например, недопустимая смена статуса запуска);
 - `422` — некорректные данные (с описанием, какое поле и что не так);
 - `503` — база данных недоступна.
 
-`PATCH` меняет только переданные поля.
+`PATCH` меняет только переданные поля. Списки отдаются от новых записей к старым.
 
 ## Запуск frontend
 

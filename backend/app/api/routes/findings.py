@@ -14,8 +14,8 @@ router = APIRouter(tags=["findings"])
     status_code=status.HTTP_201_CREATED,
 )
 def create_finding(run_id: int, data: FindingCreate, db=Depends(get_db)):
-    get_run_or_404(db, run_id)
-    return service.create_finding(db, run_id, data)
+    run = get_run_or_404(db, run_id)
+    return service.create_finding(db, run, data)
 
 
 @router.get(

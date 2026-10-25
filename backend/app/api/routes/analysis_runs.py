@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 
 from app.api.deps import get_connection_or_404, get_run_or_404
 from app.db.session import get_db
-from app.schemas.analysis_run import AnalysisRunCreate, AnalysisRunRead, AnalysisRunUpdate
+from app.schemas.analysis_run import AnalysisRunRead, AnalysisRunUpdate
 from app.services import analysis_runs as service
 
 router = APIRouter(tags=["runs"])
@@ -13,9 +13,9 @@ router = APIRouter(tags=["runs"])
     response_model=AnalysisRunRead,
     status_code=status.HTTP_201_CREATED,
 )
-def create_run(connection_id: int, data: AnalysisRunCreate, db=Depends(get_db)):
+def create_run(connection_id: int, db=Depends(get_db)):
     get_connection_or_404(db, connection_id)
-    return service.create_run(db, connection_id, data)
+    return service.create_run(db, connection_id)
 
 
 @router.get(

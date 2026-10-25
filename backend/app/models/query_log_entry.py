@@ -13,6 +13,6 @@ class QueryLogEntry(Base):
     connection_id: Mapped[int] = mapped_column(ForeignKey("connections.id", ondelete="CASCADE"))
     query: Mapped[str] = mapped_column(Text)
     is_anomaly: Mapped[bool] = mapped_column(default=False)
-    executed_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    executed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     connection: Mapped["Connection"] = relationship(back_populates="query_logs")

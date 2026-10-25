@@ -13,7 +13,8 @@ class AnalysisRun(Base):
     connection_id: Mapped[int] = mapped_column(ForeignKey("connections.id", ondelete="CASCADE"))
     status: Mapped[str] = mapped_column(String(50))
     tables_count: Mapped[int | None] = mapped_column()
-    started_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     connection: Mapped["Connection"] = relationship(back_populates="runs")
     findings: Mapped[list["Finding"]] = relationship(

@@ -12,7 +12,11 @@ def create_entry(db, connection_id, data):
 
 
 def get_entries(db, connection_id):
-    return db.scalars(select(QueryLogEntry).where(QueryLogEntry.connection_id == connection_id)).all()
+    return db.scalars(
+        select(QueryLogEntry)
+        .where(QueryLogEntry.connection_id == connection_id)
+        .order_by(QueryLogEntry.id.desc())
+    ).all()
 
 
 def get_entry(db, entry_id):

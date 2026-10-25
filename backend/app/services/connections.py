@@ -12,7 +12,7 @@ def create_connection(db, data):
 
 
 def get_connections(db):
-    return db.scalars(select(Connection)).all()
+    return db.scalars(select(Connection).order_by(Connection.id.desc())).all()
 
 
 def get_connection(db, connection_id):
