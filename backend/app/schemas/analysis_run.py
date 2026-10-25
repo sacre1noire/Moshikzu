@@ -3,12 +3,14 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.db.base import MAX_INT
+
 RunStatus = Literal["pending", "running", "done", "failed"]
 
 
 class AnalysisRunUpdate(BaseModel):
     status: RunStatus | None = None
-    tables_count: int | None = Field(default=None, ge=0)
+    tables_count: int | None = Field(default=None, ge=0, le=MAX_INT)
 
 
 class AnalysisRunRead(BaseModel):

@@ -1,9 +1,15 @@
-from fastapi import HTTPException, status
+from typing import Annotated
 
+from fastapi import HTTPException, Path, status
+
+from app.db.base import MAX_INT
 from app.services import analysis_runs as run_service
 from app.services import connections as connection_service
 from app.services import findings as finding_service
 from app.services import query_logs as query_log_service
+
+# Номер записи в адресе: целое от 1 до MAX_INT, иначе FastAPI ответит 422
+IdPath = Annotated[int, Path(ge=1, le=MAX_INT)]
 
 
 def get_connection_or_404(db, connection_id):
